@@ -68,3 +68,59 @@ graph TD
 * **Password FSM (Core):** The "brain" of the system. It manages the states (Idle, Verify, Alarm, Reset) and stores the password in registers.
 * **7-Segment Controller:** A time-multiplexed driver that visualizes the user's input in real-time
 
+## 🎮 Controls & Pin Mapping
+
+### **Switches (Data Input)**
+| Component | Function |
+| :--- | :--- |
+| **SW[3:0]** | Input for 4-bit binary digits (0-9) |
+| **SW[15]** | **Master Kill Switch** (System Override/Reset) |
+
+### **Buttons (Control Logic)**
+| Button | Function |
+| :--- | :--- |
+| **BtnC (Center)** | **ENTER:** Latch the current digit from switches |
+| **BtnU (Up)** | **CONFIRM:** Submit the two-digit code for verification |
+| **BtnL (Left)** | **RESET REQ:** Request to change password (requires old password) |
+| **BtnR (Right)** | **SAVE:** Confirm and save the *new* password |
+
+---
+
+## 🔄 Finite State Machine (FSM) Logic
+
+[cite_start]The system is governed by a robust Mealy/Moore hybrid FSM[cite: 30].
+
+* **IDLE:** System waits for input. (Status: Single LED ON) [cite_start][cite: 14, 95]
+* [cite_start]**ENTER_DIGIT:** User inputs digits via `SW[3:0]` and presses `BtnC` to latch them. [cite: 37, 40]
+* [cite_start]**VERIFY:** System compares input vs. stored password. [cite: 98]
+    * [cite_start]*Match:* Go to **UNLOCK** (Solid LEDs). [cite: 99]
+    * [cite_start]*Mismatch:* Go to **ALARM** (Blinking LEDs + Buzzer). [cite: 99, 100]
+* **RESET_OLD:** User requested a password change. [cite_start]Must enter current password to proceed. [cite: 102]
+* [cite_start]**RESET_NEW:** If old password was correct, user enters new digits and presses `BtnR` to **SAVE**. [cite: 103]
+
+---
+
+## 🚀 How to Run
+
+1.  **Clone the Repository:**
+    ```bash
+    git clone [https://github.com/YourUsername/FPGA-Security-System.git](https://github.com/YourUsername/FPGA-Security-System.git)
+    ```
+
+2.  **Open in Vivado:**
+    * [cite_start]Launch Xilinx Vivado. [cite: 13]
+    * [cite_start]Create a new project and select **Nexys A7-100T** as the target board. [cite: 13]
+    * Add the `.v` source files (top, fsm, debounce, display) and the `.xdc` constraint file.
+
+3.  **Synthesize & Implement:**
+    * Click **Run Synthesis** -> **Run Implementation** -> **Generate Bitstream**.
+
+4.  **Program Device:**
+    * Connect the Nexys A7 via USB.
+    * Open Hardware Manager -> **Auto Connect** -> **Program Device**.
+
+5.  **Test:**
+    * [cite_start]Default Password is **42**[cite: 49].
+    * Set switches to `0100` (4), press `BtnC`.
+    * Set to `0010` (2), press `BtnC`.
+    * Press `BtnU` to unlock!
